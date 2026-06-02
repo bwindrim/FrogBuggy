@@ -1,4 +1,5 @@
 from machine import Pin
+from rp2 import bootsel_button
 import time
 
 # Define the GPIO pins for each stepper motor coil.
@@ -116,10 +117,17 @@ def demo_sequence(buggy):
     buggy.set_velocity(vx=0, vy=0, omega=-1, duration_ms=2000)
     buggy.stop()
 
+led = Pin('LED', Pin.OUT)
+
 
 if __name__ == "__main__":
     buggy = MecanumDrive(MOTOR_PINS)
     try:
+        print("Press the BOOTSEL button to start the demo sequence...")
+        while not bootsel_button():
+            pass  # Wait for bootsel button press to start
+        print("...starting demo sequence")
+        led.value(1)  # Turn on LED to indicate we're starting the test
         demo_sequence(buggy)
     except KeyboardInterrupt:
         print("Interrupted by user")
@@ -127,4 +135,5 @@ if __name__ == "__main__":
         print("Error:", e)
     finally:
         buggy.stop()
+        led.value(0)  # Turn off LED
         print("Motors released")
