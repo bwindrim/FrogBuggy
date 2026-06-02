@@ -98,22 +98,42 @@ def demo_sequence(buggy):
     buggy.stop()
     time.sleep_ms(500)
 
-    print("Strafe right")
+    print("Right")
     buggy.set_velocity(vx=0, vy=1, omega=0, duration_ms=2000)
     buggy.stop()
     time.sleep_ms(500)
 
-    print("Strafe left")
+    print("Left")
     buggy.set_velocity(vx=0, vy=-1, omega=0, duration_ms=2000)
     buggy.stop()
     time.sleep_ms(500)
 
-    print("Rotate CCW")
+    print("Forward-right 45°")
+    buggy.set_velocity(vx=1, vy=1, omega=0, duration_ms=2000)
+    buggy.stop()
+    time.sleep_ms(500)
+
+    print("Forward-left 45°")
+    buggy.set_velocity(vx=1, vy=-1, omega=0, duration_ms=2000)
+    buggy.stop()
+    time.sleep_ms(500)
+
+    print("Backward-right 45°")
+    buggy.set_velocity(vx=-1, vy=1, omega=0, duration_ms=2000)
+    buggy.stop()
+    time.sleep_ms(500)
+
+    print("Backward-left 45°")
+    buggy.set_velocity(vx=-1, vy=-1, omega=0, duration_ms=2000)
+    buggy.stop()
+    time.sleep_ms(500)
+
+    print("Rotate anti-clockwise")
     buggy.set_velocity(vx=0, vy=0, omega=1, duration_ms=2000)
     buggy.stop()
     time.sleep_ms(500)
 
-    print("Rotate CW")
+    print("Rotate clockwise")
     buggy.set_velocity(vx=0, vy=0, omega=-1, duration_ms=2000)
     buggy.stop()
 
