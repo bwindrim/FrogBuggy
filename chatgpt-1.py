@@ -14,6 +14,89 @@ class Keyframe:
         self.y: float = y
         self.theta: float = theta
 
+class DanceBuilder:
+    def __init__(self):
+        self.t = 0.0
+        self.x = 0.0
+        self.y = 0.0
+        self.theta = 0.0
+        self.frames = [Keyframe(0.0, 0.0, 0.0, 0.0)]
+
+    def _add(self, dt):
+        self.t += dt
+        self.frames.append(
+            Keyframe(self.t, self.x, self.y, self.theta)
+        )
+        return self
+
+    def hold(self, dt):
+        return self._add(dt)
+
+    def forward(self, distance, dt):
+        self.x += distance * math.cos(self.theta)
+        self.y += distance * math.sin(self.theta)
+        return self._add(dt)
+
+    def backward(self, distance, dt):
+        return self.forward(-distance, dt)
+
+    def left(self, distance, dt):
+        self.x += -distance * math.sin(self.theta)
+        self.y +=  distance * math.cos(self.theta)
+        return self._add(dt)
+
+    def right(self, distance, dt):
+        return self.left(-distance, dt)
+
+    def turn_left(self, degrees, dt):
+        self.theta = angle_wrap(
+            self.theta + math.radians(degrees)
+        )
+        return self._add(dt)
+
+    def turn_right(self, degrees, dt):
+        return self.turn_left(-degrees, dt)
+
+    def build(self):
+        return self.frames
+
+    def wait_for_music(self):
+        return self.hold(5.0)
+
+    def sway(self, distance=0.25, beat=0.5):
+        return (self
+            .left(distance, beat)
+            .right(distance * 2, beat)
+            .left(distance, beat))
+
+    def box_step(self, size=0.5, beat=0.7):
+        return (self
+            .forward(size, beat)
+            .right(size, beat)
+            .backward(size, beat)
+            .left(size, beat))
+
+    def promenade(self, distance=1.0, duration=2.0):
+        return self.forward(distance, duration)
+
+    def quarter_turn_left(self, beat=0.8):
+        return self.turn_left(90, beat)
+
+    def quarter_turn_right(self, beat=0.8):
+        return self.turn_right(90, beat)
+
+    def half_turn(self, beat=1.5):
+        return self.turn_left(180, beat)
+
+    def spin_left(self, turns=1.0, duration=2.0):
+        return self.turn_left(360 * turns, duration)
+
+    def spin_right(self, turns=1.0, duration=2.0):
+        return self.turn_right(360 * turns, duration)
+
+    def pause(self, beat=0.5):
+        return self.hold(beat)
+
 def smoothstep(u: float) -> float:
     return u * u * (3 - 2 * u)
 
@@ -265,15 +348,33 @@ class Robot:
 
 
 
-keyframes: list = [
-    Keyframe(0.0,  0, 0, 0),
-    Keyframe(1.5,  1, 0, 0),
-    Keyframe(3.0,  1, 1, 1.57),
-    Keyframe(4.5,  0, 1, 3.14),
-    Keyframe(6.0,  0, 0, 0),
-]
-
-
+keyframes: list = (
+    DanceBuilder()
+#        .hold(5.0)          # spoken introduction
+        .forward(1.0, 1.5)
+        .left(0.8, 1.2)
+        .right(0.8, 1.2)
+        .turn_left(90, 1.5)
+        .forward(1.0, 1.5)
+        .turn_left(90, 1.5)
+        .forward(1.0, 1.5)
+        .turn_left(90, 1.5)
+        .forward(1.0, 1.5)
+        .build()
+)
+keyframes = (
+    DanceBuilder()
+#        .wait_for_music()
+        .promenade(1.0, 1.5)
+        .sway()
+        .quarter_turn_left()
+        .promenade(1.0, 1.5)
+        .quarter_turn_left()
+        .promenade(1.0, 1.5)
+        .quarter_turn_left()
+        .promenade(1.0, 1.5)
+        .build()
+)
 # ------------------------------------------------------------
 # Main
 # ------------------------------------------------------------
