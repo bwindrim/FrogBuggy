@@ -1,9 +1,14 @@
 # main.py — Mecanum 4-Stepper Robot Tango Skeleton (MicroPython)
 
-import time
 from machine import Pin
-
+from rp2 import bootsel_button
+import time
+from time import sleep
+from dfplayermini import DFPlayerMini
 import math
+
+led = Pin('LED', Pin.OUT)
+hand = Pin(26, Pin. IN, Pin.PULL_UP)
 
 MAX_STEPS: int = 300
 
@@ -60,8 +65,8 @@ class DanceBuilder:
     def build(self):
         return self.frames
 
-    def wait_for_music(self):
-        return self.hold(5.0)
+    def wait_for_music(self, wait_time=5.0):
+        return self.hold(wait_time)
 
     def sway(self, distance=0.25, beat=0.5):
         return (self
@@ -457,7 +462,7 @@ keyframes = (
     DanceBuilder()
 
     # Spoken introduction
-    .wait_for_music()
+    .wait_for_music(5+8)
 
     # =========================================
     # Opening phrase
@@ -568,7 +573,26 @@ traj = Trajectory(keyframes)
 runner = TrajectoryRunner(robot, traj)
 
 try:
-    print("Starting.")
+    sleep(2)  # Allow time for the DFPlayer to initialize
+    led.value(1)  # Turn on LED to indicate we're starting the test
+    player1 = DFPlayerMini(1, 4, 5)
+    print("DFPlayer Mini Test")
+    result = player1.select_source('sdcard')
+    print(f"Select Source Result: {result}")
+    result = player1.query_num_files()
+    print(f"Number of Files: {result}")
+    result = player1.set_volume(25)
+    print(f"Set Volume Result: {result}")
+
+    print("Press the BOOTSEL button to start the demo sequence...")
+    led.value(1)  # Turn on LED to indicate we're starting the test
+    while not bootsel_button() and hand.value():
+        pass  # Wait for bootsel button press to start
+
+    print("...starting demo sequence")
+    result = player1.play(1)
+    print(f"Play Result: {result}")
+
     while True:
         if not runner.update():
             robot.stop()
@@ -583,3 +607,5 @@ except Exception as e:
 finally:
     robot.stop()
     print("Motors released")
+    result = player1.stop()
+    print(f"Stop Result: {result}")
