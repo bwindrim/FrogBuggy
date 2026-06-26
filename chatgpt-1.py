@@ -5,7 +5,7 @@ from machine import Pin
 
 import math
 
-MAX_STEPS: int = 1200
+MAX_STEPS: int = 300
 
 class Keyframe:
     def __init__(self, t: float, x: float, y: float, theta: float) -> None:
@@ -120,6 +120,7 @@ class Stepper:
         self.index: int = 0
         self.speed: int = 0  # steps/sec signed
         self.last = time.ticks_ms()
+        self.next_step = time.ticks_ms()
 
     def _apply(self, pattern) -> None:
         for pin, val in zip(self.pins, pattern):
@@ -131,27 +132,29 @@ class Stepper:
             p.value(0)
 
     def set_speed(self, speed: int) -> None:
-        self.speed = speed
+        if speed != self.speed:
+            self.speed = speed
+            self.next_step = time.ticks_ms()
 
     def update(self) -> None:
         if self.speed == 0:
             return
 
+        interval = max(1, int(1000 / abs(self.speed)))
+        
         now = time.ticks_ms()
-        interval = int(1000 / abs(self.speed))
 
-        if time.ticks_diff(now, self.last) < interval:
-            return
-
-        self.last = now
-
+        if time.ticks_diff(now, self.next_step) >= 0:
+            self._step_once()
+            self.next_step = time.ticks_add(now, interval)            
+    
+    def _step_once(self):
         if self.speed > 0:
-            self.index = (self.index + 1) % 8
+            self.index = (self.index + 1) % len(self.SEQ)
         else:
-            self.index = (self.index - 1) % 8
+            self.index = (self.index - 1) % len(self.SEQ)
 
         self._apply(self.SEQ[self.index])
-
 
 # ------------------------------------------------------------
 # Robot: 4-wheel Mecanum
@@ -174,6 +177,7 @@ class Robot:
         self.set_wheels(0, 0, 0, 0)
 
     def set_wheels(self, fl: int, fr: int, rl: int, rr: int) -> None:
+        print(fl, fr, rl, rr)
         self.w_fl = fl
         self.w_fr = fr
         self.w_rl = rl
@@ -233,51 +237,6 @@ class Robot:
         self.rr.update()
 
 
-# ------------------------------------------------------------
-# Choreography (Part 1)
-# ------------------------------------------------------------
-
-class Choreography:
-    def __init__(self, robot: Robot, ramp) -> None:
-        self.robot = robot
-        self.ramp = ramp
-        self.scheduler = Scheduler()
-        self.build()
-
-    def build(self) -> None:
-        # 5s intro (no movement)
-        self.scheduler.add(5.0, "forward", 120)
-        self.scheduler.add(6.0, "strafe_right", 120)
-        self.scheduler.add(7.0, "rotate", 120)
-        self.scheduler.add(8.0, "strafe_left", 120)
-        self.scheduler.add(9.0, "stop")
-
-    # ramped actions
-    def forward(self, s: int) -> None:
-        self.ramp.set_target(s, 0, 0)
-
-    def backward(self, s: int) -> None:
-        self.ramp.set_target(-s, 0, 0)
-
-    def strafe_right(self, s: int) -> None:
-        self.ramp.set_target(0, s, 0)
-
-    def strafe_left(self, s: int) -> None:
-        self.ramp.set_target(0, -s, 0)
-
-    def rotate(self, s: int) -> None:
-        self.ramp.set_target(0, 0, s)
-
-    def stop(self) -> None:
-        self.ramp.set_target(0, 0, 0, 0)
-
-    def start(self) -> None:
-        self.scheduler.start()
-
-    def update(self) -> None:
-        self.scheduler.update(self)
-        self.ramp.update()
-        self.robot.update()
 
 keyframes: list = [
     Keyframe(0.0,  0, 0, 0),
@@ -300,9 +259,9 @@ runner = TrajectoryRunner(robot, traj)
 try:
     print("Starting.")
     while True:
-        robot.set_velocity(1, 0, 0)
+        runner.update()
         robot.update()
-        time.sleep_ms(10)
+        time.sleep_ms(5)
 except KeyboardInterrupt:
     print("Interrupted by user")
 except Exception as e:
