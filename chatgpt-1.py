@@ -162,6 +162,24 @@ class DanceBuilder:
             .forward(amount, beat)
         )
 
+    def forward_left(self, distance, dt):
+        d = distance / math.sqrt(2.0)
+        self.x += d * math.cos(self.theta) - d * math.sin(self.theta)
+        self.y += d * math.sin(self.theta) + d * math.cos(self.theta)
+        return self._add(dt)
+
+    def forward_right(self, distance, dt):
+        d = distance / math.sqrt(2.0)
+        self.x += d * math.cos(self.theta) + d * math.sin(self.theta)
+        self.y += d * math.sin(self.theta) - d * math.cos(self.theta)
+        return self._add(dt)
+
+    def backward_left(self, distance, dt):
+        return self.forward_right(-distance, dt)
+
+    def backward_right(self, distance, dt):
+        return self.forward_left(-distance, dt)
+
 def smoothstep(u: float) -> float:
     return u * u * (3 - 2 * u)
 
