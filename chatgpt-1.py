@@ -3,6 +3,96 @@
 import time
 from machine import Pin
 
+import math
+
+MAX_STEPS = 1200
+
+class Keyframe:
+    def __init__(self, t, x, y, theta):
+        self.t = t
+        self.x = x
+        self.y = y
+        self.theta = theta
+
+def smoothstep(u):
+    return u * u * (3 - 2 * u)
+
+
+def lerp(a, b, u):
+    return a + (b - a) * u
+class Trajectory:
+    def __init__(self, keyframes):
+        self.kf = sorted(keyframes, key=lambda k: k.t)
+
+    def sample(self, t):
+        # clamp edges
+        if t <= self.kf[0].t:
+            k = self.kf[0]
+            return k.x, k.y, k.theta
+
+        if t >= self.kf[-1].t:
+            k = self.kf[-1]
+            return k.x, k.y, k.theta
+
+        # find segment
+        for i in range(len(self.kf) - 1):
+            a = self.kf[i]
+            b = self.kf[i + 1]
+
+            if a.t <= t <= b.t:
+                u = (t - a.t) / (b.t - a.t)
+                u = smoothstep(u)
+
+                x = lerp(a.x, b.x, u)
+                y = lerp(a.y, b.y, u)
+                th = lerp(a.theta, b.theta, u)
+
+                return x, y, th
+
+class PoseController:
+    def __init__(self):
+        self.last = None
+
+    def compute_velocity(self, x, y, theta, dt):
+        """
+        Very simple derivative-based controller.
+        (good enough for choreography / dance robot)
+        """
+
+        if self.last is None:
+            self.last = (x, y, theta)
+            return 0, 0, 0
+
+        lx, ly, lth = self.last
+
+        vx = (x - lx) / dt
+        vy = (y - ly) / dt
+        omega = (theta - lth) / dt
+
+        self.last = (x, y, theta)
+
+        return vx, vy, omega
+
+class TrajectoryRunner:
+    def __init__(self, robot, traj):
+        self.robot = robot
+        self.traj = traj
+        self.ctrl = PoseController()
+
+        self.t0 = time.ticks_ms()
+
+    def update(self):
+        now = time.ticks_ms()
+        t = time.ticks_diff(now, self.t0) / 1000.0
+
+        x, y, th = self.traj.sample(t)
+
+        vx, vy, omega = self.ctrl.compute_velocity(x, y, th, 0.05)
+
+        self.robot.set_velocity(vx * 50, vy * 50, omega * 20)
+
+
+
 # ------------------------------------------------------------
 # Stepper Driver (unchanged core)
 # ------------------------------------------------------------
@@ -56,9 +146,9 @@ class Stepper:
         self.last = now
 
         if self.speed > 0:
-            self.index = (self.index + 1) % 4
+            self.index = (self.index + 1) % 8
         else:
-            self.index = (self.index - 1) % 4
+            self.index = (self.index - 1) % 8
 
         self._apply(self.SEQ[self.index])
 
@@ -115,86 +205,31 @@ class Robot:
 
         scale = 1.0 if m < 1 else (1.0 / m)
 
+        GAIN = 200  # <- important tuning constant
+
+        fl *= GAIN
+        fr *= GAIN
+        rl *= GAIN
+        rr *= GAIN
+
+        m = max(abs(fl), abs(fr), abs(rl), abs(rr), 1)
+
+        if m > MAX_STEPS:
+            scale = MAX_STEPS / m
+        else:
+            scale = 1.0
+
         self.set_wheels(
             int(fl * scale),
             int(fr * scale),
             int(rl * scale),
             int(rr * scale),
         )
-
     def update(self):
         self.fl.update()
         self.fr.update()
         self.rl.update()
         self.rr.update()
-
-# ------------------------------------------------------------
-# Ramp Controller (now 4-channel)
-# ------------------------------------------------------------
-
-class RampController:
-    def __init__(self, robot, ramp_ms=400):
-        self.robot = robot
-        self.ramp_ms = ramp_ms
-
-        self.cur = [0.0, 0.0, 0.0]  # vx, vy, omega
-        self.tgt = [0.0, 0.0, 0.0]
-
-        self.last = time.ticks_ms()
-
-    def set_target(self, vx, vy, omega):
-        self.tgt = [vx, vy, omega]
-
-    def update(self):
-        now = time.ticks_ms()
-        dt = time.ticks_diff(now, self.last)
-        self.last = now
-
-        step = dt / self.ramp_ms if self.ramp_ms else 1.0
-        if step > 1:
-            step = 1
-
-        for i in range(3):
-            self.cur[i] += (self.tgt[i] - self.cur[i]) * step
-
-        self.robot.set_velocity(
-            self.cur[0],
-            self.cur[1],
-            self.cur[2],
-        )
-
-# ------------------------------------------------------------
-# Scheduler (unchanged)
-# ------------------------------------------------------------
-
-class Scheduler:
-    def __init__(self):
-        self.events = []
-        self.t0 = None
-        self.i = 0
-
-    def add(self, t, action, *args):
-        self.events.append((t, action, args))
-        self.events.sort()
-
-    def start(self):
-        self.t0 = time.ticks_ms()
-        self.i = 0
-
-    def update(self, ctx):
-        if self.t0 is None:
-            return
-
-        elapsed = time.ticks_diff(time.ticks_ms(), self.t0) / 1000
-
-        while self.i < len(self.events):
-            t, action, args = self.events[self.i]
-
-            if elapsed < t:
-                break
-
-            getattr(ctx, action)(*args)
-            self.i += 1
 
 
 # ------------------------------------------------------------
@@ -243,17 +278,33 @@ class Choreography:
         self.ramp.update()
         self.robot.update()
 
+keyframes = [
+    Keyframe(0.0,  0, 0, 0),
+    Keyframe(1.5,  1, 0, 0),
+    Keyframe(3.0,  1, 1, 1.57),
+    Keyframe(4.5,  0, 1, 3.14),
+    Keyframe(6.0,  0, 0, 0),
+]
+
 
 # ------------------------------------------------------------
 # Main
 # ------------------------------------------------------------
 
 robot = Robot()
-ramp = RampController(robot, ramp_ms=500)
-choreo = Choreography(robot, ramp)
 
-choreo.start()
+traj = Trajectory(keyframes)
+runner = TrajectoryRunner(robot, traj)
 
-while True:
-    choreo.update()
-    time.sleep_ms(10)
+try:
+    while True:
+        robot.set_velocity(1, 0, 0)
+        robot.update()
+        time.sleep_ms(10)
+except KeyboardInterrupt:
+    print("Interrupted by user")
+except Exception as e:
+    print("Error:", e)
+finally:
+    robot.stop()
+    print("Motors released")
