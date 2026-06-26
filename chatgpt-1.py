@@ -5,26 +5,28 @@ from machine import Pin
 
 import math
 
-MAX_STEPS = 1200
+MAX_STEPS: int = 1200
 
 class Keyframe:
-    def __init__(self, t, x, y, theta):
-        self.t = t
-        self.x = x
-        self.y = y
-        self.theta = theta
+    def __init__(self, t: float, x: float, y: float, theta: float) -> None:
+        self.t: float = t
+        self.x: float = x
+        self.y: float = y
+        self.theta: float = theta
 
-def smoothstep(u):
+
+def smoothstep(u: float) -> float:
     return u * u * (3 - 2 * u)
 
 
-def lerp(a, b, u):
+def lerp(a: float, b: float, u: float) -> float:
     return a + (b - a) * u
-class Trajectory:
-    def __init__(self, keyframes):
-        self.kf = sorted(keyframes, key=lambda k: k.t)
 
-    def sample(self, t):
+class Trajectory:
+    def __init__(self, keyframes: list) -> None:
+        self.kf: list = sorted(keyframes, key=lambda k: k.t)
+
+    def sample(self, t: float) -> tuple:
         # clamp edges
         if t <= self.kf[0].t:
             k = self.kf[0]
@@ -50,10 +52,10 @@ class Trajectory:
                 return x, y, th
 
 class PoseController:
-    def __init__(self):
-        self.last = None
+    def __init__(self) -> None:
+        self.last: tuple | None = None
 
-    def compute_velocity(self, x, y, theta, dt):
+    def compute_velocity(self, x: float, y: float, theta: float, dt: float) -> tuple:
         """
         Very simple derivative-based controller.
         (good enough for choreography / dance robot)
@@ -74,14 +76,13 @@ class PoseController:
         return vx, vy, omega
 
 class TrajectoryRunner:
-    def __init__(self, robot, traj):
+    def __init__(self, robot, traj) -> None:
         self.robot = robot
         self.traj = traj
         self.ctrl = PoseController()
-
         self.t0 = time.ticks_ms()
 
-    def update(self):
+    def update(self) -> None:
         now = time.ticks_ms()
         t = time.ticks_diff(now, self.t0) / 1000.0
 
@@ -92,13 +93,12 @@ class TrajectoryRunner:
         self.robot.set_velocity(vx * 50, vy * 50, omega * 20)
 
 
-
 # ------------------------------------------------------------
 # Stepper Driver (unchanged core)
 # ------------------------------------------------------------
 
 class Stepper:
-    SEQ = [
+    SEQ: list = [
         (1, 0, 0, 0),
         (1, 1, 0, 0),
         (0, 1, 0, 0),
@@ -109,31 +109,31 @@ class Stepper:
         (1, 0, 0, 1),
     ]
 
-    def __init__(self, p1, p2, p3, p4):
-        self.pins = [
+    def __init__(self, p1: int, p2: int, p3: int, p4: int) -> None:
+        self.pins: list = [
             Pin(p1, Pin.OUT),
             Pin(p2, Pin.OUT),
             Pin(p3, Pin.OUT),
             Pin(p4, Pin.OUT),
         ]
 
-        self.index = 0
-        self.speed = 0  # steps/sec signed
+        self.index: int = 0
+        self.speed: int = 0  # steps/sec signed
         self.last = time.ticks_ms()
 
-    def _apply(self, pattern):
+    def _apply(self, pattern) -> None:
         for pin, val in zip(self.pins, pattern):
             pin.value(val)
 
-    def stop(self):
+    def stop(self) -> None:
         self.speed = 0
         for p in self.pins:
             p.value(0)
 
-    def set_speed(self, speed):
+    def set_speed(self, speed: int) -> None:
         self.speed = speed
 
-    def update(self):
+    def update(self) -> None:
         if self.speed == 0:
             return
 
@@ -158,22 +158,22 @@ class Stepper:
 # ------------------------------------------------------------
 
 class Robot:
-    def __init__(self):
+    def __init__(self) -> None:
         self.fl = Stepper(8, 9, 10, 11)
         self.fr = Stepper(20, 21, 22, 7)
         self.rl = Stepper(12, 13, 14, 15)
         self.rr = Stepper(16, 17, 18, 19)
 
         # target wheel speeds (from kinematics)
-        self.w_fl = 0
-        self.w_fr = 0
-        self.w_rl = 0
-        self.w_rr = 0
+        self.w_fl: int = 0
+        self.w_fr: int = 0
+        self.w_rl: int = 0
+        self.w_rr: int = 0
 
-    def stop(self):
+    def stop(self) -> None:
         self.set_wheels(0, 0, 0, 0)
 
-    def set_wheels(self, fl, fr, rl, rr):
+    def set_wheels(self, fl: int, fr: int, rl: int, rr: int) -> None:
         self.w_fl = fl
         self.w_fr = fr
         self.w_rl = rl
@@ -188,7 +188,7 @@ class Robot:
     # KINEMATICS-FIRST API
     # --------------------------------------------------------
 
-    def set_velocity(self, vx, vy, omega):
+    def set_velocity(self, vx: float, vy: float, omega: float) -> None:
         """
         vx     : forward (+) / backward (-)
         vy     : right (+) / left (-)
@@ -225,7 +225,8 @@ class Robot:
             int(rl * scale),
             int(rr * scale),
         )
-    def update(self):
+
+    def update(self) -> None:
         self.fl.update()
         self.fr.update()
         self.rl.update()
@@ -237,13 +238,13 @@ class Robot:
 # ------------------------------------------------------------
 
 class Choreography:
-    def __init__(self, robot, ramp):
+    def __init__(self, robot: Robot, ramp) -> None:
         self.robot = robot
         self.ramp = ramp
         self.scheduler = Scheduler()
         self.build()
 
-    def build(self):
+    def build(self) -> None:
         # 5s intro (no movement)
         self.scheduler.add(5.0, "forward", 120)
         self.scheduler.add(6.0, "strafe_right", 120)
@@ -252,33 +253,33 @@ class Choreography:
         self.scheduler.add(9.0, "stop")
 
     # ramped actions
-    def forward(self, s):
+    def forward(self, s: int) -> None:
         self.ramp.set_target(s, 0, 0)
 
-    def backward(self, s):
+    def backward(self, s: int) -> None:
         self.ramp.set_target(-s, 0, 0)
 
-    def strafe_right(self, s):
+    def strafe_right(self, s: int) -> None:
         self.ramp.set_target(0, s, 0)
 
-    def strafe_left(self, s):
+    def strafe_left(self, s: int) -> None:
         self.ramp.set_target(0, -s, 0)
 
-    def rotate(self, s):
+    def rotate(self, s: int) -> None:
         self.ramp.set_target(0, 0, s)
 
-    def stop(self):
+    def stop(self) -> None:
         self.ramp.set_target(0, 0, 0, 0)
 
-    def start(self):
+    def start(self) -> None:
         self.scheduler.start()
 
-    def update(self):
+    def update(self) -> None:
         self.scheduler.update(self)
         self.ramp.update()
         self.robot.update()
 
-keyframes = [
+keyframes: list = [
     Keyframe(0.0,  0, 0, 0),
     Keyframe(1.5,  1, 0, 0),
     Keyframe(3.0,  1, 1, 1.57),
@@ -297,6 +298,7 @@ traj = Trajectory(keyframes)
 runner = TrajectoryRunner(robot, traj)
 
 try:
+    print("Starting.")
     while True:
         robot.set_velocity(1, 0, 0)
         robot.update()
