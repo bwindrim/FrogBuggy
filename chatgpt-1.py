@@ -24,6 +24,17 @@ def smoothstep_derivative(u: float) -> float:
 def lerp(a: float, b: float, u: float) -> float:
     return a + (b - a) * u
 
+def angle_wrap(a: float) -> float:
+    while a > math.pi:
+        a -= 2.0 * math.pi
+    while a < -math.pi:
+        a += 2.0 * math.pi
+    return a
+
+def angle_lerp(a: float, b: float, u: float) -> float:
+    d = angle_wrap(b - a)
+    return angle_wrap(a + d * u)
+
 class Trajectory:
     def __init__(self, keyframes: list) -> None:
         self.kf: list = sorted(keyframes, key=lambda k: k.t)
@@ -54,11 +65,12 @@ class Trajectory:
 
                 x = lerp(a.x, b.x, u)
                 y = lerp(a.y, b.y, u)
-                th = lerp(a.theta, b.theta, u)
+                th = angle_lerp(a.theta, b.theta, u)
 
                 vx = (b.x - a.x) * du / duration
                 vy = (b.y - a.y) * du / duration
-                omega = (b.theta - a.theta) * du / duration
+                dtheta = angle_wrap(b.theta - a.theta)
+                omega = dtheta * du / duration
 
                 return x, y, th, vx, vy, omega
 
