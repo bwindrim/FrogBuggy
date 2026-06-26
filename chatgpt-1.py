@@ -97,6 +97,66 @@ class DanceBuilder:
     def pause(self, beat=0.5):
         return self.hold(beat)
 
+    def glide(self, distance, dt):
+        return self.left(distance, dt)
+
+    def arc_left(self,
+                radius,
+                degrees,
+                duration,
+                segments=8):
+
+        angle = math.radians(degrees)
+
+        cx = self.x - radius * math.sin(self.theta)
+        cy = self.y + radius * math.cos(self.theta)
+
+        start = self.theta
+
+        for i in range(1, segments + 1):
+
+            a = start + angle * i / segments
+
+            self.x = cx + radius * math.sin(a)
+            self.y = cy - radius * math.cos(a)
+            self.theta = angle_wrap(a)
+
+            self._add(duration / segments)
+
+        return self
+
+    def arc_right(self,
+                radius,
+                degrees,
+                duration,
+                segments=8):
+
+        angle = math.radians(degrees)
+
+        cx = self.x + radius * math.sin(self.theta)
+        cy = self.y - radius * math.cos(self.theta)
+
+        start = self.theta
+
+        for i in range(1, segments + 1):
+
+            a = start - angle * i / segments
+
+            self.x = cx - radius * math.sin(a)
+            self.y = cy + radius * math.cos(a)
+            self.theta = angle_wrap(a)
+
+            self._add(duration / segments)
+
+        return self
+
+    def dip(self, amount=0.2, beat=0.25):
+        return (
+            self
+            .backward(amount, beat)
+            .forward(amount, beat)
+        )
+
 def smoothstep(u: float) -> float:
     return u * u * (3 - 2 * u)
 
@@ -373,6 +433,19 @@ keyframes = (
         .promenade(1.0, 1.5)
         .quarter_turn_left()
         .promenade(1.0, 1.5)
+        .build()
+)
+keyframes = (
+    DanceBuilder()
+        .wait_for_music()
+        .promenade(0.8,1.2)
+        .sway()
+        .arc_left(0.7,90,2.0)
+        .glide(0.5,0.7)
+        .glide(-0.5,0.7)
+        .spin_left(1.0,2.0)
+        .dip()
+        .pause(0.5)
         .build()
 )
 # ------------------------------------------------------------
