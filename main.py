@@ -1,6 +1,12 @@
 from machine import Pin
 from rp2 import bootsel_button
 import time
+from time import sleep
+from dfplayermini import DFPlayerMini
+
+led = Pin('LED', Pin.OUT)
+hand = Pin(26, Pin. IN, Pin.PULL_UP)
+
 
 # Define the GPIO pins for each stepper motor coil.
 # Adapt these pin numbers to your Pico wiring.
@@ -137,18 +143,38 @@ def demo_sequence(buggy):
     buggy.set_velocity(vx=0, vy=0, omega=-1, duration_ms=2000)
     buggy.stop()
 
-led = Pin('LED', Pin.OUT)
-
 
 if __name__ == "__main__":
     buggy = MecanumDrive(MOTOR_PINS)
     try:
-        print("Press the BOOTSEL button to start the demo sequence...")
-        while not bootsel_button():
-            pass  # Wait for bootsel button press to start
-        print("...starting demo sequence")
+        sleep(2)  # Allow time for the DFPlayer to initialize
         led.value(1)  # Turn on LED to indicate we're starting the test
-        demo_sequence(buggy)
+        player1 = DFPlayerMini(1, 4, 5)
+        print("DFPlayer Mini Test")
+        result = player1.select_source('sdcard')
+        print(f"Select Source Result: {result}")
+        result = player1.query_num_files()
+        print(f"Number of Files: {result}")
+        result = player1.set_volume(25)
+        print(f"Set Volume Result: {result}")
+
+        while True:
+            print("Press the BOOTSEL button to start the demo sequence...")
+            led.value(1)  # Turn on LED to indicate we're starting the test
+            while not bootsel_button() and hand.value():
+                pass  # Wait for bootsel button press to start
+
+            print("...starting demo sequence")
+            result = player1.play(1)
+            print(f"Play Result: {result}")
+            sleep(5)
+            demo_sequence(buggy)
+
+    #        while not bootsel_button():
+    #            pass  # Wait for bootsel button press to stop
+
+            result = player1.stop()
+            print(f"Stop Result: {result}")
     except KeyboardInterrupt:
         print("Interrupted by user")
     except Exception as e:
