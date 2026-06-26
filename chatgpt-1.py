@@ -227,10 +227,12 @@ class TrajectoryRunner:
     def __init__(self, robot, traj):
         self.robot = robot
         self.traj = traj
-        self.t0 = time.ticks_us()
+        self.t0 = None
         self.duration = traj.kf[-1].t
 
     def update(self):
+        if self.t0 is None:
+            self.t0 = time.ticks_us()
         now = time.ticks_us()
         t = time.ticks_diff(now, self.t0) / 1_000_000.0
 
@@ -420,7 +422,7 @@ class Robot:
 
 keyframes: list = (
     DanceBuilder()
-#        .hold(5.0)          # spoken introduction
+        .hold(8)          # spoken introduction
         .forward(1.0, 1.5)
         .left(0.8, 1.2)
         .right(0.8, 1.2)
@@ -434,7 +436,7 @@ keyframes: list = (
 )
 keyframes = (
     DanceBuilder()
-#        .wait_for_music()
+        .wait_for_music(8)
         .promenade(1.0, 1.5)
         .sway()
         .quarter_turn_left()
@@ -447,7 +449,7 @@ keyframes = (
 )
 keyframes = (
     DanceBuilder()
-        .wait_for_music()
+        .wait_for_music(13)
         .promenade(0.8,1.2)
         .sway()
         .arc_left(0.7,90,2.0)
@@ -462,7 +464,7 @@ keyframes = (
     DanceBuilder()
 
     # Spoken introduction
-    .wait_for_music(5+8)
+    .wait_for_music(8)
 
     # =========================================
     # Opening phrase
@@ -563,35 +565,53 @@ keyframes = (
     .build()
 )
 
+keyframes = (
+    DanceBuilder()
+        .forward(1.0, 5.0)
+        .backward(1.0, 5.0)
+        .left(1.0, 5.0)
+        .right(1.0, 5.0)
+        .build()
+)
+
+# Returns True if the bootsel button or the frog's hand button are pressed.
+def button_pressed() -> Bool:
+    return bootsel_button() or not hand.value()
+
 # ------------------------------------------------------------
 # Main
 # ------------------------------------------------------------
 
 robot = Robot()
 
-traj = Trajectory(keyframes)
-runner = TrajectoryRunner(robot, traj)
+do_music = False
 
 try:
     sleep(2)  # Allow time for the DFPlayer to initialize
     led.value(1)  # Turn on LED to indicate we're starting the test
-    player1 = DFPlayerMini(1, 4, 5)
-    print("DFPlayer Mini Test")
-    result = player1.select_source('sdcard')
-    print(f"Select Source Result: {result}")
-    result = player1.query_num_files()
-    print(f"Number of Files: {result}")
-    result = player1.set_volume(25)
-    print(f"Set Volume Result: {result}")
+    if do_music:
+        player1 = DFPlayerMini(1, 4, 5)
+        print("DFPlayer Mini Test")
+        result = player1.select_source('sdcard')
+        print(f"Select Source Result: {result}")
+        result = player1.query_num_files()
+        print(f"Number of Files: {result}")
+        result = player1.set_volume(25)
+        print(f"Set Volume Result: {result}")
 
     print("Press the BOOTSEL button to start the demo sequence...")
     led.value(1)  # Turn on LED to indicate we're starting the test
-    while not bootsel_button() and hand.value():
-        pass  # Wait for bootsel button press to start
+    while not button_pressed():
+        pass  # Wait for button press to start
 
     print("...starting demo sequence")
-    result = player1.play(1)
-    print(f"Play Result: {result}")
+    if do_music:
+        result = player1.play(1)
+        print(f"Play Result: {result}")
+        time.sleep(5) # wait for spoken intro to finish
+
+    traj = Trajectory(keyframes)
+    runner = TrajectoryRunner(robot, traj)
 
     while True:
         if not runner.update():
@@ -607,5 +627,6 @@ except Exception as e:
 finally:
     robot.stop()
     print("Motors released")
-    result = player1.stop()
-    print(f"Stop Result: {result}")
+    if do_music:
+        result = player1.stop()
+        print(f"Stop Result: {result}")
