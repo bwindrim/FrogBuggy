@@ -120,7 +120,13 @@ class Stepper:
         ]
 
         self.index: int = 0
-        self.speed: int = 0  # steps/sec signed
+        self.target_speed = 0.0      # requested speed (steps/s)
+        self.current_speed = 0.0     # actual speed (steps/s)
+
+        self.max_accel = 2500.0      # steps/s² (tune this)
+
+        self.next_step = time.ticks_us()
+        self.last_update = time.ticks_us()
         self.next_step = time.ticks_us()
 
     def _apply(self, pattern) -> None:
@@ -128,26 +134,42 @@ class Stepper:
             pin.value(val)
 
     def stop(self) -> None:
-        self.speed = 0
+        self.target_speed = 0.0
+        self.current_speed = 0.0
         for p in self.pins:
             p.value(0)
 
     def set_speed(self, speed: int) -> None:
-        if speed != self.speed:
-            self.speed = speed
-            self.next_step = time.ticks_us()
+        self.target_speed = float(speed)
 
     def update(self) -> None:
-        if self.speed == 0:
+        now = time.ticks_us()
+
+        dt = time.ticks_diff(now, self.last_update) / 1_000_000.0
+        self.last_update = now
+
+        delta = self.target_speed - self.current_speed
+
+        limit = self.max_accel * dt
+
+        if delta > limit:
+            delta = limit
+        elif delta < -limit:
+            delta = -limit
+
+        self.current_speed += delta
+
+        # only stop AFTER we've updated the speed
+        if abs(self.current_speed) < 0.01:
             return
 
-        interval = max(100, int(1_000_000 / abs(self.speed)))
+        interval = max(100, int(1_000_000 / abs(self.current_speed)))
 
         now = time.ticks_us()
 
         if time.ticks_diff(now, self.next_step) >= 0:
             self._step_once()
-            self.next_step = time.ticks_add(now, interval)
+            self.next_step = time.ticks_add(self.next_step, interval)
 
             # If we've fallen a long way behind (e.g. after a pause),
             # resynchronise rather than trying to catch up with a burst.
@@ -155,7 +177,7 @@ class Stepper:
                 self.next_step = time.ticks_add(now, interval)
     
     def _step_once(self):
-        if self.speed > 0:
+        if self.current_speed > 0:
             self.index = (self.index + 1) % len(self.SEQ)
         else:
             self.index = (self.index - 1) % len(self.SEQ)
@@ -183,7 +205,6 @@ class Robot:
         self.set_wheels(0, 0, 0, 0)
 
     def set_wheels(self, fl: int, fr: int, rl: int, rr: int) -> None:
-        print(fl, fr, rl, rr)
         self.w_fl = fl
         self.w_fr = fr
         self.w_rl = rl
