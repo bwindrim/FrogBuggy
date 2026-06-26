@@ -14,10 +14,12 @@ class Keyframe:
         self.y: float = y
         self.theta: float = theta
 
-
 def smoothstep(u: float) -> float:
     return u * u * (3 - 2 * u)
 
+def smoothstep_derivative(u: float) -> float:
+    # derivative of u²(3−2u)
+    return 6.0 * u * (1.0 - u)
 
 def lerp(a: float, b: float, u: float) -> float:
     return a + (b - a) * u
@@ -26,72 +28,60 @@ class Trajectory:
     def __init__(self, keyframes: list) -> None:
         self.kf: list = sorted(keyframes, key=lambda k: k.t)
 
-    def sample(self, t: float) -> tuple:
-        # clamp edges
+    def sample(self, t: float):
+
         if t <= self.kf[0].t:
             k = self.kf[0]
-            return k.x, k.y, k.theta
+            return k.x, k.y, k.theta, 0.0, 0.0, 0.0
 
         if t >= self.kf[-1].t:
             k = self.kf[-1]
-            return k.x, k.y, k.theta
+            return k.x, k.y, k.theta, 0.0, 0.0, 0.0
 
-        # find segment
         for i in range(len(self.kf) - 1):
+
             a = self.kf[i]
             b = self.kf[i + 1]
 
             if a.t <= t <= b.t:
-                u = (t - a.t) / (b.t - a.t)
-                u = smoothstep(u)
+
+                duration = b.t - a.t
+
+                s = (t - a.t) / duration
+
+                u = smoothstep(s)
+                du = smoothstep_derivative(s)
 
                 x = lerp(a.x, b.x, u)
                 y = lerp(a.y, b.y, u)
                 th = lerp(a.theta, b.theta, u)
 
-                return x, y, th
+                vx = (b.x - a.x) * du / duration
+                vy = (b.y - a.y) * du / duration
+                omega = (b.theta - a.theta) * du / duration
 
-class PoseController:
-    def __init__(self) -> None:
-        self.last: tuple | None = None
+                return x, y, th, vx, vy, omega
 
-    def compute_velocity(self, x: float, y: float, theta: float, dt: float) -> tuple:
-        """
-        Very simple derivative-based controller.
-        (good enough for choreography / dance robot)
-        """
-
-        if self.last is None:
-            self.last = (x, y, theta)
-            return 0, 0, 0
-
-        lx, ly, lth = self.last
-
-        vx = (x - lx) / dt
-        vy = (y - ly) / dt
-        omega = (theta - lth) / dt
-
-        self.last = (x, y, theta)
-
-        return vx, vy, omega
 
 class TrajectoryRunner:
     def __init__(self, robot, traj) -> None:
         self.robot = robot
         self.traj = traj
-        self.ctrl = PoseController()
         self.t0 = time.ticks_us()
 
-    def update(self) -> None:
+    def update(self):
+
         now = time.ticks_us()
-        t = time.ticks_diff(now, self.t0) / 1000_000.0
+        t = time.ticks_diff(now, self.t0) / 1_000_000.0
 
-        x, y, th = self.traj.sample(t)
+        x, y, th, vx, vy, omega = self.traj.sample(t)
 
-        vx, vy, omega = self.ctrl.compute_velocity(x, y, th, 0.05)
-
-        self.robot.set_velocity(vx * 50, vy * 50, omega * 20)
-
+        # convert trajectory units to wheel-speed units
+        self.robot.set_velocity(
+            vx * 50,
+            vy * 50,
+            omega * 20,
+        )
 
 # ------------------------------------------------------------
 # Stepper Driver (unchanged core)
