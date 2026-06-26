@@ -80,11 +80,11 @@ class TrajectoryRunner:
         self.robot = robot
         self.traj = traj
         self.ctrl = PoseController()
-        self.t0 = time.ticks_ms()
+        self.t0 = time.ticks_us()
 
     def update(self) -> None:
-        now = time.ticks_ms()
-        t = time.ticks_diff(now, self.t0) / 1000.0
+        now = time.ticks_us()
+        t = time.ticks_diff(now, self.t0) / 1000_000.0
 
         x, y, th = self.traj.sample(t)
 
@@ -119,8 +119,7 @@ class Stepper:
 
         self.index: int = 0
         self.speed: int = 0  # steps/sec signed
-        self.last = time.ticks_ms()
-        self.next_step = time.ticks_ms()
+        self.next_step = time.ticks_us()
 
     def _apply(self, pattern) -> None:
         for pin, val in zip(self.pins, pattern):
@@ -134,19 +133,24 @@ class Stepper:
     def set_speed(self, speed: int) -> None:
         if speed != self.speed:
             self.speed = speed
-            self.next_step = time.ticks_ms()
+            self.next_step = time.ticks_us()
 
     def update(self) -> None:
         if self.speed == 0:
             return
 
-        interval = max(1, int(1000 / abs(self.speed)))
-        
-        now = time.ticks_ms()
+        interval = max(100, int(1_000_000 / abs(self.speed)))
+
+        now = time.ticks_us()
 
         if time.ticks_diff(now, self.next_step) >= 0:
             self._step_once()
-            self.next_step = time.ticks_add(now, interval)            
+            self.next_step = time.ticks_add(now, interval)
+
+            # If we've fallen a long way behind (e.g. after a pause),
+            # resynchronise rather than trying to catch up with a burst.
+            if time.ticks_diff(now, self.next_step) > interval * 4:
+                self.next_step = time.ticks_add(now, interval)
     
     def _step_once(self):
         if self.speed > 0:
@@ -261,7 +265,7 @@ try:
     while True:
         runner.update()
         robot.update()
-        time.sleep_ms(5)
+        time.sleep_ms(1)
 except KeyboardInterrupt:
     print("Interrupted by user")
 except Exception as e:
