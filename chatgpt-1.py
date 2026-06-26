@@ -219,24 +219,29 @@ class Trajectory:
 
 
 class TrajectoryRunner:
-    def __init__(self, robot, traj) -> None:
+    def __init__(self, robot, traj):
         self.robot = robot
         self.traj = traj
         self.t0 = time.ticks_us()
+        self.duration = traj.kf[-1].t
 
     def update(self):
-
         now = time.ticks_us()
         t = time.ticks_diff(now, self.t0) / 1_000_000.0
 
+        if t >= self.duration:
+            self.robot.set_velocity(0.0, 0.0, 0.0)
+            return False
+
         x, y, th, vx, vy, omega = self.traj.sample(t)
 
-        # convert trajectory units to wheel-speed units
         self.robot.set_velocity(
             vx * 50,
             vy * 50,
             omega * 20,
         )
+
+        return True
 
 # ------------------------------------------------------------
 # Stepper Driver (unchanged core)
@@ -460,7 +465,10 @@ runner = TrajectoryRunner(robot, traj)
 try:
     print("Starting.")
     while True:
-        runner.update()
+        if not runner.update():
+            robot.stop()
+            break
+
         robot.update()
         time.sleep_ms(1)
 except KeyboardInterrupt:
