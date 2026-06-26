@@ -69,52 +69,64 @@ class Stepper:
 
 class Robot:
     def __init__(self):
-        # EDIT PINS FOR YOUR WIRING
-        self.fl = Stepper(8, 9, 10, 11)  # front-left
-        self.fr = Stepper(20, 21, 22, 7)  # front-right
-        self.rl = Stepper(12, 13, 14, 15)  # rear-left
-        self.rr = Stepper(16, 17, 18, 19)  # rear-right
+        self.fl = Stepper(8, 9, 10, 11)
+        self.fr = Stepper(20, 21, 22, 7)
+        self.rl = Stepper(12, 13, 14, 15)
+        self.rr = Stepper(16, 17, 18, 19)
+
+        # target wheel speeds (from kinematics)
+        self.w_fl = 0
+        self.w_fr = 0
+        self.w_rl = 0
+        self.w_rr = 0
 
     def stop(self):
-        self.fl.stop()
-        self.fr.stop()
-        self.rl.stop()
-        self.rr.stop()
+        self.set_wheels(0, 0, 0, 0)
 
     def set_wheels(self, fl, fr, rl, rr):
+        self.w_fl = fl
+        self.w_fr = fr
+        self.w_rl = rl
+        self.w_rr = rr
+
         self.fl.set_speed(fl)
         self.fr.set_speed(fr)
         self.rl.set_speed(rl)
         self.rr.set_speed(rr)
 
     # --------------------------------------------------------
-    # High-level mecanum motions
+    # KINEMATICS-FIRST API
     # --------------------------------------------------------
 
-    def forward(self, s):
-        self.set_wheels(s, s, s, s)
+    def set_velocity(self, vx, vy, omega):
+        """
+        vx     : forward (+) / backward (-)
+        vy     : right (+) / left (-)
+        omega  : rotation CW (+)
+        """
 
-    def strafe_right(self, s):
-        self.set_wheels(-s, s, s, -s)
+        fl = vx - vy - omega
+        fr = vx + vy + omega
+        rl = vx + vy - omega
+        rr = vx - vy + omega
 
-    def strafe_left(self, s):
-        self.set_wheels(s, -s, -s, s)
+        # normalize so no wheel exceeds limit
+        m = max(abs(fl), abs(fr), abs(rl), abs(rr), 1)
 
-    def rotate(self, s):
-        self.set_wheels(s, -s, s, -s)
+        scale = 1.0 if m < 1 else (1.0 / m)
 
-    def diagonal_fl(self, s):
-        self.set_wheels(0, s, s, 0)
-
-    def diagonal_fr(self, s):
-        self.set_wheels(s, 0, 0, s)
+        self.set_wheels(
+            int(fl * scale),
+            int(fr * scale),
+            int(rl * scale),
+            int(rr * scale),
+        )
 
     def update(self):
         self.fl.update()
         self.fr.update()
         self.rl.update()
         self.rr.update()
-
 
 # ------------------------------------------------------------
 # Ramp Controller (now 4-channel)
@@ -125,13 +137,13 @@ class RampController:
         self.robot = robot
         self.ramp_ms = ramp_ms
 
-        self.cur = [0, 0, 0, 0]
-        self.tgt = [0, 0, 0, 0]
+        self.cur = [0.0, 0.0, 0.0]  # vx, vy, omega
+        self.tgt = [0.0, 0.0, 0.0]
 
         self.last = time.ticks_ms()
 
-    def set_target(self, fl, fr, rl, rr):
-        self.tgt = [fl, fr, rl, rr]
+    def set_target(self, vx, vy, omega):
+        self.tgt = [vx, vy, omega]
 
     def update(self):
         now = time.ticks_ms()
@@ -142,16 +154,14 @@ class RampController:
         if step > 1:
             step = 1
 
-        for i in range(4):
+        for i in range(3):
             self.cur[i] += (self.tgt[i] - self.cur[i]) * step
 
-        self.robot.set_wheels(
-            int(self.cur[0]),
-            int(self.cur[1]),
-            int(self.cur[2]),
-            int(self.cur[3]),
+        self.robot.set_velocity(
+            self.cur[0],
+            self.cur[1],
+            self.cur[2],
         )
-
 
 # ------------------------------------------------------------
 # Scheduler (unchanged)
@@ -208,16 +218,19 @@ class Choreography:
 
     # ramped actions
     def forward(self, s):
-        self.ramp.set_target(s, s, s, s)
+        self.ramp.set_target(s, 0, 0)
+
+    def backward(self, s):
+        self.ramp.set_target(-s, 0, 0)
 
     def strafe_right(self, s):
-        self.ramp.set_target(-s, s, s, -s)
+        self.ramp.set_target(0, s, 0)
 
     def strafe_left(self, s):
-        self.ramp.set_target(s, -s, -s, s)
+        self.ramp.set_target(0, -s, 0)
 
     def rotate(self, s):
-        self.ramp.set_target(s, -s, s, -s)
+        self.ramp.set_target(0, 0, s)
 
     def stop(self):
         self.ramp.set_target(0, 0, 0, 0)
