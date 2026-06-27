@@ -720,17 +720,60 @@ def development_B(db):
         .corte(0.35)
     )
 
+def development_C(db):
+    return (db
+
+        # Small inward spiral.
+        .spiral(
+            turns=0.75,
+            start_radius=0.70,
+            end_radius=0.35,
+            duration=4.2,
+            direction="right")
+
+        .corte(0.20)
+
+        # Long diagonal glide.
+        .forward_right(
+            0.75,
+            2.5)
+
+        # Immediate answer.
+        .forward_left(
+            0.75,
+            2.5)
+
+        # Flowing reverse figure-eight.
+        .reverse_figure_eight(
+            radius=0.65,
+            duration=5.5)
+
+        .corte(0.30)
+
+        # Open out ready for the reprise.
+        .arc_left(
+            radius=1.00,
+            degrees=110,
+            duration=3.0)
+
+        .corte(0.40)
+    )
+
 # Start to build up the choreography
-db = DanceBuilder()
+def el_corte():
+    db = DanceBuilder()
 
-intro(db)
-opening_A(db)
-opening_A_prime(db)
-bridge(db)
-development_A(db)
-development_B(db)
+    intro(db)
+    opening_A(db)
+    opening_A_prime(db)
+    bridge(db)
+    development_A(db)
+    development_B(db)
+    development_C(db)
 
-keyframes = db.build()
+    return db.build()
+
+keyframes = el_corte()
 
 # Returns True if the bootsel button or the frog's hand button are pressed.
 def button_pressed() -> bool:
