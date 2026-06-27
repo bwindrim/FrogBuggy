@@ -648,7 +648,7 @@ def development_A(db):
 #        .corte(beat=0.20)
 
         # Continue travelling.
-        .promenade(distance=distance=0.90, duration=duration=2.8)
+        .promenade(distance=0.90, duration=2.8)
 
 #        .corte(beat=0.20)
 
