@@ -521,7 +521,7 @@ def intro(db):
     return (db
         .wait_for_music(7.5)
         .sway(0.08, 0.45)
-        .corte(0.25)
+#        .corte(0.25)
         .sway(0.06, 0.40)
         .turn_left(20, 1.4)
         .forward_left(0.25, 1.4)
@@ -530,25 +530,19 @@ def intro(db):
 
 def opening_A(db):
     return (db
-
         # Strong entrance
         .promenade(0.90, 3.0)
-
-        .corte(0.20)
-
+ #       .corte(0.20)
         # Sweep gently onto the dance floor
         .arc_left(
             radius=0.90,
             degrees=70,
             duration=3.0)
-
-        .corte(0.15)
-
+#        .corte(0.15)
         # Continue confidently
         .promenade(0.75, 2.5)
-
         # Small hesitation
-        .corte(0.20)
+#        .corte(0.20)
 
         # Elegant tango sway
         .sway(
@@ -569,7 +563,7 @@ def opening_A_prime(db):
         # Repeat the opening idea, but mirrored.
         .promenade(0.95, 3.2)
 
-        .corte(0.20)
+#        .corte(0.20)
 
         # Mirror of the previous sweeping turn.
         .arc_right(
@@ -577,13 +571,13 @@ def opening_A_prime(db):
             degrees=70,
             duration=3.0)
 
-        .corte(0.15)
+#        .corte(0.15)
 
         # Continue travelling.
         .promenade(0.85, 2.8)
 
         # A characteristic tango hesitation.
-        .corte(0.20)
+#        .corte(0.20)
 
         # Diagonal glide.
         .forward_right(
@@ -611,14 +605,14 @@ def bridge(db):
             radius=0.80,
             duration=6.0)
 
-        .corte(0.20)
+#        .corte(0.20)
 
         # Travel confidently.
         .promenade(
             distance=1.10,
             duration=3.5)
 
-        .corte(0.15)
+#        .corte(0.15)
 
         # Gentle side conversation.
         .glide(
@@ -629,7 +623,7 @@ def bridge(db):
             -0.25,
             0.8)
 
-        .corte(0.20)
+#        .corte(0.20)
 
         # Open the couple towards the centre.
         .arc_left(
@@ -648,14 +642,14 @@ def development_A(db):
             0.70,
             2.6)
 
-        .corte(0.15)
+#        .corte(0.15)
 
         # Mirror immediately.
         .forward_right(
             0.70,
             2.6)
 
-        .corte(0.15)
+#        .corte(0.15)
 
         # Flow into a broad right-hand curve.
         .arc_right(
@@ -663,14 +657,14 @@ def development_A(db):
             degrees=120,
             duration=3.8)
 
-        .corte(0.20)
+#        .corte(0.20)
 
         # Continue travelling.
         .promenade(
             distance=0.90,
             duration=2.8)
 
-        .corte(0.20)
+#        .corte(0.20)
 
         # Gentle weight shift.
         .glide(
@@ -1002,7 +996,7 @@ def button_pressed() -> bool:
 
 robot = Robot()
 
-do_music = False
+do_music = True
 
 try:
     sleep(2)  # Allow time for the DFPlayer to initialize
