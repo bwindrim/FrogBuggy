@@ -229,7 +229,8 @@ class DanceBuilder:
                start_radius=1.0,
                end_radius=0.2,
                duration=5.0,
-               segments=24):
+               segments=24,
+               direction="left"):
 
         total_angle = 360.0 * turns
 
@@ -243,12 +244,20 @@ class DanceBuilder:
                 (end_radius - start_radius) * u0
             )
 
-            self.arc_left(
-                radius=radius,
-                degrees=total_angle / segments,
-                duration=duration / segments,
-                segments=1
-            )
+            if direction == "left":
+                self.arc_left(
+                    radius=radius,
+                    degrees=total_angle / segments,
+                    duration=duration / segments,
+                    segments=1
+                )
+            else:
+                self.arc_right(
+                    radius=radius,
+                    degrees=total_angle / segments,
+                    duration=duration / segments,
+                    segments=1
+                )
 
         return self
 
@@ -508,165 +517,9 @@ class Robot:
         self.rl.update()
         self.rr.update()
 
-
-
-keyframes: list = (
-    DanceBuilder()
-        .hold(8)          # spoken introduction
-        .forward(1.0, 1.5)
-        .left(0.8, 1.2)
-        .right(0.8, 1.2)
-        .turn_left(90, 1.5)
-        .forward(1.0, 1.5)
-        .turn_left(90, 1.5)
-        .forward(1.0, 1.5)
-        .turn_left(90, 1.5)
-        .forward(1.0, 1.5)
-        .build()
-)
-keyframes = (
-    DanceBuilder()
-        .wait_for_music(8)
-        .promenade(1.0, 1.5)
-        .sway()
-        .quarter_turn_left()
-        .promenade(1.0, 1.5)
-        .quarter_turn_left()
-        .promenade(1.0, 1.5)
-        .quarter_turn_left()
-        .promenade(1.0, 1.5)
-        .build()
-)
-keyframes = (
-    DanceBuilder()
-        .wait_for_music(13)
-        .promenade(0.8,1.2)
-        .sway()
-        .arc_left(0.7,90,2.0)
-        .glide(0.5,0.7)
-        .glide(-0.5,0.7)
-        .spin_left(1.0,2.0)
-        .dip()
-        .pause(0.5)
-        .build()
-)
-keyframes = (
-    DanceBuilder()
-
-    # Spoken introduction
-    .wait_for_music(8)
-
-    # =========================================
-    # Opening phrase
-    # =========================================
-
-    .promenade(0.8, 1.4)
-    .pause(0.2)
-
-    .sway(0.20, 0.45)
-
-    .arc_left(
-        radius=0.8,
-        degrees=90,
-        duration=1.8)
-
-    # =========================================
-    # Tango side steps
-    # =========================================
-
-    .glide(0.45, 0.55)
-    .glide(-0.45, 0.55)
-    .glide(0.45, 0.55)
-
-    .dip()
-
-    # =========================================
-    # Sweeping turn
-    # =========================================
-
-    .arc_right(
-        radius=0.7,
-        degrees=135,
-        duration=2.2)
-
-    .promenade(0.7, 1.0)
-
-    .quarter_turn_left()
-
-    # =========================================
-    # Chorus
-    # =========================================
-
-    .box_step(
-        size=0.30,
-        beat=0.45)
-
-    .spin_left(
-        turns=0.75,
-        duration=1.6)
-
-    .pause(0.2)
-
-    # =========================================
-    # Middle section
-    # =========================================
-
-    .arc_left(
-        radius=0.6,
-        degrees=180,
-        duration=2.8)
-
-    .glide(-0.5, 0.7)
-    .glide( 0.5, 0.7)
-
-    .dip()
-
-    # =========================================
-    # Finale begins
-    # =========================================
-
-    .promenade(1.0, 1.4)
-
-    .spin_right(
-        turns=1.0,
-        duration=2.0)
-
-    .pause(0.3)
-
-    .arc_left(
-        radius=0.5,
-        degrees=180,
-        duration=1.8)
-
-    # =========================================
-    # Final pose
-    # =========================================
-
-    .promenade(0.4, 0.8)
-
-    .half_turn(1.2)
-
-    .dip(
-        amount=0.12,
-        beat=0.35)
-
-    .pause(1.5)
-
-    .build()
-)
-
-keyframes = (
-    DanceBuilder()
-        .forward(1.0, 5.0)
-        .backward(1.0, 5.0)
-        .left(1.0, 5.0)
-        .right(1.0, 5.0)
-        .build()
-)
-
 def intro(db):
     return (db
-        .wait_for_music(2.5)
+        .wait_for_music(7.5)
         .sway(0.08, 0.45)
         .corte(0.25)
         .sway(0.06, 0.40)
@@ -787,6 +640,86 @@ def bridge(db):
         .corte(0.40)
     )
 
+def development_A(db):
+    return (db
+
+        # A confident diagonal entrance into the phrase.
+        .forward_left(
+            0.70,
+            2.6)
+
+        .corte(0.15)
+
+        # Mirror immediately.
+        .forward_right(
+            0.70,
+            2.6)
+
+        .corte(0.15)
+
+        # Flow into a broad right-hand curve.
+        .arc_right(
+            radius=1.00,
+            degrees=120,
+            duration=3.8)
+
+        .corte(0.20)
+
+        # Continue travelling.
+        .promenade(
+            distance=0.90,
+            duration=2.8)
+
+        .corte(0.20)
+
+        # Gentle weight shift.
+        .glide(
+            0.20,
+            0.7)
+
+        .glide(
+            -0.20,
+            0.7)
+
+        .corte(0.30)
+    )
+
+def development_B(db):
+    return (db
+
+        # Long sweeping curve across the floor.
+        .arc_left(
+            radius=1.20,
+            degrees=160,
+            duration=5.0)
+
+        # Continue without stopping.
+        .promenade(
+            distance=1.10,
+            duration=3.2)
+
+        # Tightening spiral.
+        .spiral(
+            turns=0.5,
+            start_radius=1.00,
+            end_radius=0.45,
+            duration=3.8,
+            segments=12)
+
+        # Drift diagonally.
+        .forward_left(
+            0.60,
+            2.2)
+
+        # Gentle recovery.
+        .backward_right(
+            0.30,
+            1.2)
+
+        # Finally acknowledge the musical cadence.
+        .corte(0.35)
+    )
+
 # Start to build up the choreography
 db = DanceBuilder()
 
@@ -794,6 +727,9 @@ intro(db)
 opening_A(db)
 opening_A_prime(db)
 bridge(db)
+development_A(db)
+development_B(db)
+
 keyframes = db.build()
 
 # Returns True if the bootsel button or the frog's hand button are pressed.
@@ -830,7 +766,7 @@ try:
     if do_music:
         result = player1.play(1)
         print(f"Play Result: {result}")
-        time.sleep(5) # wait for spoken intro to finish
+#        time.sleep(5) # wait for spoken intro to finish
 
     traj = Trajectory(keyframes)
     runner = TrajectoryRunner(robot, traj)
