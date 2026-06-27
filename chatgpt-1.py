@@ -519,30 +519,30 @@ class Robot:
 
 def intro(db):
     return (db
-        .wait_for_music(7.5)
-        .sway(0.08, 0.45)
-#        .corte(0.25)
-        .sway(0.06, 0.40)
-        .turn_left(20, 1.4)
-        .forward_left(0.25, 1.4)
-        .corte(0.40)
+        .wait_for_music(wait_time=7.5)
+        .sway(distance=0.08, beat=0.45)
+#        .corte(beat=0.25)
+        .sway(distance=0.06, beat=0.40)
+        .turn_left(degrees=20, dt=1.4)
+        .forward_left(distance=0.25, dt=1.4)
+        .corte(beat=0.40)
     )
 
 def opening_A(db):
     return (db
         # Strong entrance
-        .promenade(0.90, 3.0)
- #       .corte(0.20)
+        .promenade(distance=0.90, duration=3.0)
+ #       .corte(beat=0.20)
         # Sweep gently onto the dance floor
         .arc_left(
             radius=0.90,
             degrees=70,
             duration=3.0)
-#        .corte(0.15)
+#        .corte(beat=0.15)
         # Continue confidently
-        .promenade(0.75, 2.5)
+        .promenade(distance=0.75, duration=2.5)
         # Small hesitation
-#        .corte(0.20)
+#        .corte(beat=0.20)
 
         # Elegant tango sway
         .sway(
@@ -551,19 +551,19 @@ def opening_A(db):
 
         # Finish by opening the body slightly
         .turn_left(
-            20,
-            0.8)
+            degrees=20,
+            dt=0.8)
 
-        .corte(0.30)
+        .corte(beat=0.30)
     )
 
-def opening_A_prime(db):
+def opening_A_prime(db=db):
     return (db
 
         # Repeat the opening idea, but mirrored.
-        .promenade(0.95, 3.2)
+        .promenade(distance=0.95, duration=3.2)
 
-#        .corte(0.20)
+#        .corte(beat=0.20)
 
         # Mirror of the previous sweeping turn.
         .arc_right(
@@ -571,33 +571,29 @@ def opening_A_prime(db):
             degrees=70,
             duration=3.0)
 
-#        .corte(0.15)
+#        .corte(beat=0.15)
 
         # Continue travelling.
-        .promenade(0.85, 2.8)
+        .promenade(distance=0.85, duration=2.8)
 
         # A characteristic tango hesitation.
-#        .corte(0.20)
+#        .corte(beat=0.20)
 
         # Diagonal glide.
-        .forward_right(
-            0.35,
-            1.6)
+        .forward_right(distance=0.35, dt=1.6)
 
         # Recover gracefully.
-        .backward_left(
-            0.18,
-            0.9)
+        .backward_left(distance=0.18, dt=0.9)
 
         # Small flourish.
         .turn_right(
-            18,
-            0.8)
+            degrees=18,
+            dt=0.8)
 
-        .corte(0.35)
+        .corte(beat=0.35)
     )
 
-def bridge(db):
+def bridge(db=db):
     return (db
 
         # Large flowing figure that uses the floor.
@@ -605,25 +601,21 @@ def bridge(db):
             radius=0.80,
             duration=6.0)
 
-#        .corte(0.20)
+#        .corte(beat=0.20)
 
         # Travel confidently.
         .promenade(
             distance=1.10,
             duration=3.5)
 
-#        .corte(0.15)
+#        .corte(beat=0.15)
 
         # Gentle side conversation.
-        .glide(
-            0.25,
-            0.8)
+        .glide(distance=0.25, dt=0.8)
 
-        .glide(
-            -0.25,
-            0.8)
+        .glide(distance=-0.25, dt=0.8)
 
-#        .corte(0.20)
+#        .corte(beat=0.20)
 
         # Open the couple towards the centre.
         .arc_left(
@@ -631,25 +623,21 @@ def bridge(db):
             degrees=90,
             duration=2.8)
 
-        .corte(0.40)
+        .corte(beat=0.40)
     )
 
 def development_A(db):
     return (db
 
         # A confident diagonal entrance into the phrase.
-        .forward_left(
-            0.70,
-            2.6)
+        .forward_left(distance=0.70, dt=2.6)
 
-#        .corte(0.15)
+#        .corte(beat=0.15)
 
         # Mirror immediately.
-        .forward_right(
-            0.70,
-            2.6)
+        .forward_right(distance=0.70, dt=2.6)
 
-#        .corte(0.15)
+#        .corte(beat=0.15)
 
         # Flow into a broad right-hand curve.
         .arc_right(
@@ -657,25 +645,19 @@ def development_A(db):
             degrees=120,
             duration=3.8)
 
-#        .corte(0.20)
+#        .corte(beat=0.20)
 
         # Continue travelling.
-        .promenade(
-            distance=0.90,
-            duration=2.8)
+        .promenade(distance=distance=0.90, duration=duration=2.8)
 
-#        .corte(0.20)
+#        .corte(beat=0.20)
 
         # Gentle weight shift.
-        .glide(
-            0.20,
-            0.7)
+        .glide(distance=0.20, dt=0.7)
 
-        .glide(
-            -0.20,
-            0.7)
+        .glide(distance=-0.20, dt=0.7)
 
-        .corte(0.30)
+        .corte(beat=0.30)
     )
 
 def development_B(db):
@@ -701,20 +683,16 @@ def development_B(db):
             segments=12)
 
         # Drift diagonally.
-        .forward_left(
-            0.60,
-            2.2)
+        .forward_left(distance=0.60, dt=2.2)
 
         # Gentle recovery.
-        .backward_right(
-            0.30,
-            1.2)
+        .backward_right(distance=0.30, dt=1.2)
 
         # Finally acknowledge the musical cadence.
-        .corte(0.35)
+        .corte(beat=0.35)
     )
 
-def development_C(db):
+def development_C(db=db):
     return (db
 
         # Small inward spiral.
@@ -725,24 +703,20 @@ def development_C(db):
             duration=4.2,
             direction="right")
 
-        .corte(0.20)
+        .corte(beat=0.20)
 
         # Long diagonal glide.
-        .forward_right(
-            0.75,
-            2.5)
+        .forward_right(distance=0.75, dt=2.5)
 
         # Immediate answer.
-        .forward_left(
-            0.75,
-            2.5)
+        .forward_left(distance=0.75, dt=2.5)
 
         # Flowing reverse figure-eight.
         .reverse_figure_eight(
             radius=0.65,
             duration=5.5)
 
-        .corte(0.30)
+        .corte(beat=0.30)
 
         # Open out ready for the reprise.
         .arc_left(
@@ -750,10 +724,10 @@ def development_C(db):
             degrees=110,
             duration=3.0)
 
-        .corte(0.40)
+        .corte(beat=0.40)
     )
 
-def reprise(db):
+def reprise(db=db):
     return (db
 
         # Long confident promenade.
@@ -773,7 +747,7 @@ def reprise(db):
             duration=5.5)
 
         # Brief hesitation on the musical accent.
-        .corte(0.25)
+        .corte(beat=0.25)
 
         # Continue travelling.
         .promenade(
@@ -781,14 +755,10 @@ def reprise(db):
             duration=2.8)
 
         # Gentle diagonal drift.
-        .forward_left(
-            0.40,
-            1.5)
+        .forward_left(distance=0.40, dt=1.5)
 
         # Recover while keeping momentum.
-        .backward_right(
-            0.20,
-            0.9)
+        .backward_right(distance=0.20, dt=0.9)
 
         # Finish by opening towards the next phrase.
         .arc_left(
@@ -796,10 +766,10 @@ def reprise(db):
             degrees=70,
             duration=2.4)
 
-        .corte(0.40)
+        .corte(beat=0.40)
     )
 
-def crescendo(db):
+def crescendo(db=db):
     return (db
 
         # Large sweeping left-hand curve.
@@ -822,14 +792,10 @@ def crescendo(db):
             direction="right")
 
         # A long diagonal glide.
-        .forward_right(
-            0.80,
-            2.4)
+        .forward_right(distance=0.80, dt=2.4)
 
         # Mirror it immediately.
-        .forward_left(
-            0.80,
-            2.4)
+        .forward_left(distance=0.80, dt=2.4)
 
         # Finish with a flowing quarter-circle.
         .arc_right(
@@ -838,7 +804,7 @@ def crescendo(db):
             duration=2.5)
 
         # Pause only when the phrase resolves.
-        .corte(0.45)
+        .corte(beat=0.45)
     )
 
 def climax(db):
@@ -869,16 +835,12 @@ def climax(db):
             duration=3.8)
 
         # Gentle diagonal flourish.
-        .forward_right(
-            0.50,
-            1.4)
+        .forward_right(distance=0.50, dt=1.4)
 
-        .backward_left(
-            0.25,
-            0.8)
+        .backward_left(distance=0.25, dt=0.8)
 
         # Musical punctuation before the finale.
-        .corte(0.50)
+        .corte(beat=0.50)
     )
 
 def final_sweep(db):
@@ -896,19 +858,13 @@ def final_sweep(db):
             duration=4.0)
 
         # Elegant sideways drift while maintaining heading.
-        .glide(
-            0.30,
-            1.0)
+        .glide(distance=0.30, dt=1.0)
 
         # Continue diagonally.
-        .forward_right(
-            0.70,
-            2.2)
+        .forward_right(distance=0.70, dt=2.2)
 
         # Mirror the movement.
-        .forward_left(
-            0.70,
-            2.2)
+        .forward_left(distance=0.70, dt=2.2)
 
         # Large sweeping curve back toward centre.
         .arc_right(
@@ -921,7 +877,7 @@ def final_sweep(db):
             distance=0.90,
             duration=2.8)
 
-        .corte(0.40)
+        .corte(beat=0.40)
     )
 
 def coda(db):
@@ -939,22 +895,18 @@ def coda(db):
             duration=2.2)
 
         # Brief hesitation.
-        .corte(0.30)
+        .corte(beat=0.30)
 
         # Small diagonal adjustment.
-        .forward_right(
-            0.25,
-            1.0)
+        .forward_right(distance=0.25, dt=1.0)
 
         # Return to centre.
-        .backward_left(
-            0.15,
-            0.8)
+        .backward_left(distance=0.15, dt=0.8)
 
         # Face the audience.
         .turn_left(
-            20,
-            1.0)
+            degrees=20,
+            dt=1.0)
 
         # Final tiny advance.
         .promenade(
@@ -962,7 +914,7 @@ def coda(db):
             duration=1.0)
 
         # The final pose.
-        .corte(3.0)
+        .corte(beat=3.0)
     )
 
 # Start to build up the choreography
