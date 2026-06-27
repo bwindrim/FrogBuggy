@@ -664,6 +664,23 @@ keyframes = (
         .build()
 )
 
+def intro(db):
+    return (db
+        .wait_for_music(2.5)
+        .sway(0.08, 0.45)
+        .corte(0.25)
+        .sway(0.06, 0.40)
+        .turn_left(20, 1.4)
+        .forward_left(0.25, 1.4)
+        .corte(0.40)
+    )
+
+db = DanceBuilder()
+
+intro(db)
+
+keyframes = db.build()
+
 # Returns True if the bootsel button or the frog's hand button are pressed.
 def button_pressed() -> Bool:
     return bootsel_button() or not hand.value()
