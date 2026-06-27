@@ -675,14 +675,49 @@ def intro(db):
         .corte(0.40)
     )
 
+def opening_A(db):
+    return (db
+
+        # Strong entrance
+        .promenade(0.90, 3.0)
+
+        .corte(0.20)
+
+        # Sweep gently onto the dance floor
+        .arc_left(
+            radius=0.90,
+            degrees=70,
+            duration=3.0)
+
+        .corte(0.15)
+
+        # Continue confidently
+        .promenade(0.75, 2.5)
+
+        # Small hesitation
+        .corte(0.20)
+
+        # Elegant tango sway
+        .sway(
+            distance=0.15,
+            beat=0.50)
+
+        # Finish by opening the body slightly
+        .turn_left(
+            20,
+            0.8)
+
+        .corte(0.30)
+    )
+
 db = DanceBuilder()
 
 intro(db)
-
+opening_A(db)
 keyframes = db.build()
 
 # Returns True if the bootsel button or the frog's hand button are pressed.
-def button_pressed() -> Bool:
+def button_pressed() -> bool:
     return bootsel_button() or not hand.value()
 
 # ------------------------------------------------------------
