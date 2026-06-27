@@ -759,6 +759,218 @@ def development_C(db):
         .corte(0.40)
     )
 
+def reprise(db):
+    return (db
+
+        # Long confident promenade.
+        .promenade(
+            distance=1.20,
+            duration=3.8)
+
+        # Broad sweeping right-hand turn.
+        .arc_right(
+            radius=1.10,
+            degrees=140,
+            duration=4.2)
+
+        # Flow straight into a figure eight.
+        .figure_eight(
+            radius=0.70,
+            duration=5.5)
+
+        # Brief hesitation on the musical accent.
+        .corte(0.25)
+
+        # Continue travelling.
+        .promenade(
+            distance=0.90,
+            duration=2.8)
+
+        # Gentle diagonal drift.
+        .forward_left(
+            0.40,
+            1.5)
+
+        # Recover while keeping momentum.
+        .backward_right(
+            0.20,
+            0.9)
+
+        # Finish by opening towards the next phrase.
+        .arc_left(
+            radius=0.80,
+            degrees=70,
+            duration=2.4)
+
+        .corte(0.40)
+    )
+
+def crescendo(db):
+    return (db
+
+        # Large sweeping left-hand curve.
+        .arc_left(
+            radius=1.30,
+            degrees=170,
+            duration=5.0)
+
+        # Continue directly into a long promenade.
+        .promenade(
+            distance=1.30,
+            duration=3.6)
+
+        # Open into a broad right-hand spiral.
+        .spiral(
+            turns=0.75,
+            start_radius=1.20,
+            end_radius=0.45,
+            duration=4.5,
+            direction="right")
+
+        # A long diagonal glide.
+        .forward_right(
+            0.80,
+            2.4)
+
+        # Mirror it immediately.
+        .forward_left(
+            0.80,
+            2.4)
+
+        # Finish with a flowing quarter-circle.
+        .arc_right(
+            radius=0.90,
+            degrees=90,
+            duration=2.5)
+
+        # Pause only when the phrase resolves.
+        .corte(0.45)
+    )
+
+def climax(db):
+    return (db
+
+        # Open with a broad outward spiral.
+        .spiral(
+            turns=1.0,
+            start_radius=0.45,
+            end_radius=1.30,
+            duration=5.5,
+            direction="left")
+
+        # Continue immediately into a large figure eight.
+        .figure_eight(
+            radius=0.90,
+            duration=6.0)
+
+        # Long sweeping right-hand arc.
+        .arc_right(
+            radius=1.25,
+            degrees=180,
+            duration=4.8)
+
+        # Strong promenade across the floor.
+        .promenade(
+            distance=1.40,
+            duration=3.8)
+
+        # Gentle diagonal flourish.
+        .forward_right(
+            0.50,
+            1.4)
+
+        .backward_left(
+            0.25,
+            0.8)
+
+        # Musical punctuation before the finale.
+        .corte(0.50)
+    )
+
+def final_sweep(db):
+    return (db
+
+        # Sweep away from the climax.
+        .arc_left(
+            radius=1.40,
+            degrees=120,
+            duration=4.2)
+
+        # Long travelling promenade.
+        .promenade(
+            distance=1.50,
+            duration=4.0)
+
+        # Elegant sideways drift while maintaining heading.
+        .glide(
+            0.30,
+            1.0)
+
+        # Continue diagonally.
+        .forward_right(
+            0.70,
+            2.2)
+
+        # Mirror the movement.
+        .forward_left(
+            0.70,
+            2.2)
+
+        # Large sweeping curve back toward centre.
+        .arc_right(
+            radius=1.20,
+            degrees=140,
+            duration=4.0)
+
+        # Gentle closing promenade.
+        .promenade(
+            distance=0.90,
+            duration=2.8)
+
+        .corte(0.40)
+    )
+
+def coda(db):
+    return (db
+
+        # A quiet, confident promenade.
+        .promenade(
+            distance=0.60,
+            duration=2.5)
+
+        # Gentle closing curve.
+        .arc_left(
+            radius=0.80,
+            degrees=60,
+            duration=2.2)
+
+        # Brief hesitation.
+        .corte(0.30)
+
+        # Small diagonal adjustment.
+        .forward_right(
+            0.25,
+            1.0)
+
+        # Return to centre.
+        .backward_left(
+            0.15,
+            0.8)
+
+        # Face the audience.
+        .turn_left(
+            20,
+            1.0)
+
+        # Final tiny advance.
+        .promenade(
+            distance=0.20,
+            duration=1.0)
+
+        # The final pose.
+        .corte(3.0)
+    )
+
 # Start to build up the choreography
 def el_corte():
     db = DanceBuilder()
@@ -770,7 +982,12 @@ def el_corte():
     development_A(db)
     development_B(db)
     development_C(db)
-
+    reprise(db)
+    crescendo(db)
+    climax(db)
+    final_sweep(db)
+    coda(db)
+    
     return db.build()
 
 keyframes = el_corte()
