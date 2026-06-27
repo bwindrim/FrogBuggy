@@ -750,11 +750,50 @@ def opening_A_prime(db):
         .corte(0.35)
     )
 
+def bridge(db):
+    return (db
+
+        # Large flowing figure that uses the floor.
+        .figure_eight(
+            radius=0.80,
+            duration=6.0)
+
+        .corte(0.20)
+
+        # Travel confidently.
+        .promenade(
+            distance=1.10,
+            duration=3.5)
+
+        .corte(0.15)
+
+        # Gentle side conversation.
+        .glide(
+            0.25,
+            0.8)
+
+        .glide(
+            -0.25,
+            0.8)
+
+        .corte(0.20)
+
+        # Open the couple towards the centre.
+        .arc_left(
+            radius=0.75,
+            degrees=90,
+            duration=2.8)
+
+        .corte(0.40)
+    )
+
+# Start to build up the choreography
 db = DanceBuilder()
 
 intro(db)
 opening_A(db)
-opening_B(db)
+opening_A_prime(db)
+bridge(db)
 keyframes = db.build()
 
 # Returns True if the bootsel button or the frog's hand button are pressed.
