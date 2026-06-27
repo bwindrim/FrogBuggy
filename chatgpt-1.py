@@ -710,10 +710,51 @@ def opening_A(db):
         .corte(0.30)
     )
 
+def opening_A_prime(db):
+    return (db
+
+        # Repeat the opening idea, but mirrored.
+        .promenade(0.95, 3.2)
+
+        .corte(0.20)
+
+        # Mirror of the previous sweeping turn.
+        .arc_right(
+            radius=0.90,
+            degrees=70,
+            duration=3.0)
+
+        .corte(0.15)
+
+        # Continue travelling.
+        .promenade(0.85, 2.8)
+
+        # A characteristic tango hesitation.
+        .corte(0.20)
+
+        # Diagonal glide.
+        .forward_right(
+            0.35,
+            1.6)
+
+        # Recover gracefully.
+        .backward_left(
+            0.18,
+            0.9)
+
+        # Small flourish.
+        .turn_right(
+            18,
+            0.8)
+
+        .corte(0.35)
+    )
+
 db = DanceBuilder()
 
 intro(db)
 opening_A(db)
+opening_B(db)
 keyframes = db.build()
 
 # Returns True if the bootsel button or the frog's hand button are pressed.
