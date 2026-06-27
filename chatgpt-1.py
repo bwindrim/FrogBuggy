@@ -180,6 +180,78 @@ class DanceBuilder:
     def backward_right(self, distance, dt):
         return self.forward_left(-distance, dt)
 
+    def corte(self, beat=0.30):
+        """Sharp tango freeze."""
+        return self.hold(beat)
+
+    def figure_eight(self,
+                     radius=0.6,
+                     duration=4.0,
+                     segments=8):
+        return (
+            self
+            .arc_left(
+                radius,
+                180,
+                duration / 2,
+                segments
+            )
+            .arc_right(
+                radius,
+                180,
+                duration / 2,
+                segments
+            )
+        )
+
+    def reverse_figure_eight(self,
+                             radius=0.6,
+                             duration=4.0,
+                             segments=8):
+        return (
+            self
+            .arc_right(
+                radius,
+                180,
+                duration / 2,
+                segments
+            )
+            .arc_left(
+                radius,
+                180,
+                duration / 2,
+                segments
+            )
+        )
+
+    def spiral(self,
+               turns=1.0,
+               start_radius=1.0,
+               end_radius=0.2,
+               duration=5.0,
+               segments=24):
+
+        total_angle = 360.0 * turns
+
+        for i in range(segments):
+
+            u0 = i / segments
+            u1 = (i + 1) / segments
+
+            radius = (
+                start_radius +
+                (end_radius - start_radius) * u0
+            )
+
+            self.arc_left(
+                radius=radius,
+                degrees=total_angle / segments,
+                duration=duration / segments,
+                segments=1
+            )
+
+        return self
+
 def smoothstep(u: float) -> float:
     return u * u * (3 - 2 * u)
 
