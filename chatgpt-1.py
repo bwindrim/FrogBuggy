@@ -627,16 +627,13 @@ def development_B(db):
             distance=1.10,
             duration=3.2)
         # Tightening spiral.
-        .spiral(
+        .spin_left(
             turns=0.5,
-            start_radius=1.00,
-            end_radius=0.45,
-            duration=3.8,
-            segments=12)
+            duration=3.8)
         # Drift diagonally.
         .forward_left(distance=0.60, dt=2.2)
         # Gentle recovery.
-        .backward_right(distance=0.30, dt=1.2)
+        .forward_right(distance=0.30, dt=1.2)
         # Finally acknowledge the musical cadence.
         .corte(beat=0.35)
     )
@@ -653,13 +650,17 @@ def development_C(db):
             direction="right")
         .corte(beat=0.20)
         # Long diagonal glide.
-        .forward_right(distance=0.75, dt=2.5)
+        .forward_right(distance=0.75, dt=1.5)
         # Immediate answer.
-        .forward_left(distance=0.75, dt=2.5)
+        .forward_left(distance=0.75, dt=1.5)
+        # Long diagonal glide.
+        .forward_right(distance=0.75, dt=1.5)
+        # Immediate answer.
+        .forward_left(distance=0.75, dt=1.5)
         # Flowing reverse figure-eight.
         .spin_right(
             turns=0.75,
-            duration=5.5)
+            duration=4.5)
         .corte(beat=0.30)
         # Open out ready for the reprise.
         .arc_left(
@@ -682,8 +683,8 @@ def reprise(db):
             degrees=140,
             duration=4.2)
         # Flow straight into a figure eight.
-        .figure_eight(
-            radius=0.70,
+        .spin_left(
+            turns=0.75,
             duration=5.5)
         # Brief hesitation on the musical accent.
         .corte(beat=0.25)
@@ -692,9 +693,9 @@ def reprise(db):
             distance=0.90,
             duration=2.8)
         # Gentle diagonal drift.
-        .forward_left(distance=0.40, dt=1.5)
+        .forward_left(distance=0.30, dt=1.2)
         # Recover while keeping momentum.
-        .backward_right(distance=0.20, dt=0.9)
+        .forward_right(distance=0.30, dt=1.2)
         # Finish by opening towards the next phrase.
         .arc_left(
             radius=0.80,
