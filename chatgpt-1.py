@@ -550,7 +550,7 @@ def opening_A(db):
         .corte(beat=0.30)
     )
 
-def opening_A_prime(db=db):
+def opening_A_prime(db):
     return (db
 
         # Repeat the opening idea, but mirrored.
@@ -573,12 +573,11 @@ def opening_A_prime(db=db):
         .corte(beat=0.35)
     )
 
-def bridge(db=db):
+def bridge(db):
     return (db
 
         # Large flowing figure that uses the floor.
-        .figure_eight(
-            radius=0.80,
+        .spin_left(turns=1,
             duration=6.0)
         # Travel confidently.
         .promenade(
@@ -642,7 +641,7 @@ def development_B(db):
         .corte(beat=0.35)
     )
 
-def development_C(db=db):
+def development_C(db):
     return (db
 
         # Small inward spiral.
@@ -658,8 +657,8 @@ def development_C(db=db):
         # Immediate answer.
         .forward_left(distance=0.75, dt=2.5)
         # Flowing reverse figure-eight.
-        .reverse_figure_eight(
-            radius=0.65,
+        .spin_right(
+            turns=0.75,
             duration=5.5)
         .corte(beat=0.30)
         # Open out ready for the reprise.
@@ -670,7 +669,7 @@ def development_C(db=db):
         .corte(beat=0.40)
     )
 
-def reprise(db=db):
+def reprise(db):
     return (db
 
         # Long confident promenade.
@@ -704,7 +703,7 @@ def reprise(db=db):
         .corte(beat=0.40)
     )
 
-def crescendo(db=db):
+def crescendo(db):
     return (db
 
         # Large sweeping left-hand curve.
@@ -717,20 +716,16 @@ def crescendo(db=db):
             distance=1.30,
             duration=3.6)
         # Open into a broad right-hand spiral.
-        .spiral(
+        .spin_left(
             turns=0.75,
-            start_radius=1.20,
-            end_radius=0.45,
-            duration=4.5,
-            direction="right")
+            duration=4.5)
         # A long diagonal glide.
         .forward_right(distance=0.80, dt=2.4)
         # Mirror it immediately.
         .forward_left(distance=0.80, dt=2.4)
         # Finish with a flowing quarter-circle.
-        .arc_right(
-            radius=0.90,
-            degrees=90,
+        .spin_right(
+            turns=0.25,
             duration=2.5)
         # Pause only when the phrase resolves.
         .corte(beat=0.45)
@@ -747,8 +742,8 @@ def climax(db):
             duration=5.5,
             direction="left")
         # Continue immediately into a large figure eight.
-        .figure_eight(
-            radius=0.90,
+        .spin_left(
+            turns=1,
             duration=6.0)
         # Long sweeping right-hand arc.
         .arc_right(
@@ -816,7 +811,7 @@ def coda(db):
         .backward_left(distance=0.15, dt=0.8)
         # Face the audience.
         .turn_left(
-            degrees=20,
+            degrees=45,
             dt=1.0)
         # Final tiny advance.
         .promenade(
@@ -872,27 +867,29 @@ try:
         result = player1.set_volume(25)
         print(f"Set Volume Result: {result}")
 
-    print("Press the BOOTSEL button to start the demo sequence...")
-    led.value(1)  # Turn on LED to indicate we're starting the test
-    while not button_pressed():
-        pass  # Wait for button press to start
-
-    print("...starting demo sequence")
-    if do_music:
-        result = player1.play(1)
-        print(f"Play Result: {result}")
-#        time.sleep(5) # wait for spoken intro to finish
-
-    traj = Trajectory(keyframes)
-    runner = TrajectoryRunner(robot, traj)
-
     while True:
-        if not runner.update():
-            robot.stop()
-            break
+        print("Press the BOOTSEL button to start the demo sequence...")
+        led.value(1)  # Turn on LED to indicate we're starting the test
+        while not button_pressed():
+            pass  # Wait for button press to start
+        time.sleep(0.25) # debunce button
 
-        robot.update()
-        time.sleep_ms(1)
+        print("...starting demo sequence")
+        if do_music:
+            result = player1.play(1)
+            print(f"Play Result: {result}")
+
+        traj = Trajectory(keyframes)
+        runner = TrajectoryRunner(robot, traj)
+
+        while runner.update() and not button_pressed():
+            robot.update()
+            time.sleep_ms(1)
+
+        robot.stop()
+        if do_music:
+            player1.stop()
+
 except KeyboardInterrupt:
     print("Interrupted by user")
 except Exception as e:
